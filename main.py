@@ -26,9 +26,7 @@ def parse_file():
     print(f'Done. {line_count} messages read')
     print(f'Users found: {len(user_array)}')
 
-    for user in user_array:
-        percentage = user.number_messages / line_count
-        print(f'Username: {user.username}   Messages: {user.number_messages}    Contribution: {percentage * 100}%')
+    return c.Channel(user_array, line_count)
 
 
 # Parses current line stats and updates user_array accordingly
@@ -50,6 +48,49 @@ def parse_user(current_row, user_array):
         user_array.append(c.User(user_id, current_row[v.USERNAME]))
 
 
+# Writes CSV output file
+def write_file(user_array, messages):
+    with open('output.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        row_text = generate_header()
+        writer.writerow(row_text)
+
+        row = 1
+        count = 0
+        for user in user_array:
+            if v.show_id:
+                row_text[count] = user.user_id
+                count += 1
+            if v.show_username:
+                row_text[count] = user.username
+                count += 1
+            if v.show_number_messages:
+                row_text[count] = user.number_messages
+                count += 1
+            if v.show_contribution:
+                row_text[count] = (user.number_messages / messages) * 100
+                count += 1
+            count = 0
+            writer.writerow(row_text)
+            row += 1
+    print("Wrote to ./output.csv")
+
+
+# Loads settings, generates header text
+def generate_header():
+    to_return = []
+
+    if v.show_id:
+        to_return.append("USER_ID")
+    if v.show_username:
+        to_return.append("Username")
+    if v.show_number_messages:
+        to_return.append("Number of Messages")
+    if v.show_contribution:
+        to_return.append("Contribution")
+
+    return to_return
+
 # Loads settings file.
 # Configures what information should be calculated and printed to output file
 def load_settings():
@@ -58,6 +99,7 @@ def load_settings():
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    parse_file()
+    channel = parse_file()
+    write_file(channel.user_array, channel.messages)
 
 
